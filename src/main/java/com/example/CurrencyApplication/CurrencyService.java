@@ -1,11 +1,17 @@
 package com.example.CurrencyApplication;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -14,8 +20,7 @@ public class CurrencyService {
     RestTemplateClass restTemplate;
     private CurrencyList currencyList;
 
-    FileWriter fileWriter = new FileWriter("savedRates.json");
-
+    JSONObject ratesAll = new JSONObject();
     public CurrencyService() throws IOException {
     }
 
@@ -40,51 +45,29 @@ public class CurrencyService {
         return historicalBase.getConversions();
     }
 
+    public void mapOverRates(String base){
+        Map <String, Float> response = getLatest(base);
+        JSONObject rates = new JSONObject();
+        for (String rate : response.keySet()){
+            rates.put(rate, response.get(rate));
+        }
+        ratesAll.put(base, rates);
+    }
     public void createJSON() throws IOException {
-        Map<String, Float> responseUSD = getLatest("USD");
-        JSONObject ratesUSD = new JSONObject();
-        for (String rate : responseUSD.keySet()){
-            ratesUSD.put(rate, responseUSD.get(rate));
-        }
+        mapOverRates("USD");
+        mapOverRates("EUR");
+        mapOverRates("GBP");
+        mapOverRates("JPY");
+        mapOverRates("AUD");
 
-        Map<String, Float> responseEUR = getLatest("EUR");
-        JSONObject ratesEUR = new JSONObject();
-        for (String rate : responseEUR.keySet()){
-            ratesEUR.put(rate, responseEUR.get(rate));
-        }
-
-        Map<String, Float> responseGBP = getLatest("GBP");
-        JSONObject ratesGBP = new JSONObject();
-        for (String rate : responseGBP.keySet()){
-            ratesGBP.put(rate, responseGBP.get(rate));
-        }
-
-        Map<String, Float> responseJPY = getLatest("JPY");
-        JSONObject ratesJPY = new JSONObject();
-        for (String rate : responseJPY.keySet()){
-            ratesJPY.put(rate, responseJPY.get(rate));
-        }
-
-        Map<String, Float> responseAUD = getLatest("AUD");
-        JSONObject ratesAUD = new JSONObject();
-        for (String rate : responseAUD.keySet()){
-            ratesAUD.put(rate, responseAUD.get(rate));
-        }
-
-        JSONObject ratesAll = new JSONObject();
-        ratesAll.put("USD", ratesUSD);
-        ratesAll.put("EUR", ratesEUR);
-        ratesAll.put("GBP", ratesGBP);
-        ratesAll.put("JPY", ratesJPY);
-        ratesAll.put("AUD", ratesAUD);
-
-        try {
+        try (FileWriter fileWriter = new FileWriter("savedRates.json")) {
             fileWriter.write(ratesAll.toString());
         } catch (IOException e){
             e.printStackTrace();
         }
     }
 
+    //not available
     public Map<String, Float> compareCurrentAndHistorical(String base, String year, String month, String day){
         Map<String, Float> latest = getLatest(base);
         Map<String, Float> historical = getHistorical(base, year, month, day);
@@ -96,14 +79,32 @@ public class CurrencyService {
         } return compared;
     }
 
-    public String convertToAny(String base, String target, String amount) {
-        String url = "https://api.getgeoapi.com/v2/currency/convert\n" +
-                "?api_key=67ff4bd5ca1d969ced576da7b2021b4428be88d6\n" +
-                "&from=" + base +
-                "&to=" + target +
-                "&amoun" + amount +
-                "&format=json";
-        return restTemplate.getForObject(url, String.class);
+    public Map<String, Float> compareLatestToSaved(String base) throws FileNotFoundException {
+        Map<String, Float> latest = getLatest(base);
+        Map<String, Float> json = getJsonData(base);
+        Map<String, Float> compared = null;
+        for (String currency : latest.keySet()){
+            if (json.keySet().contains(currency)){
+                compared.put(currency, latest.get(currency)-json.get(currency));
+            }
+        } return compared;
+    }
+
+    public Map<String, Float> getJsonData(String base) throws FileNotFoundException {
+        Map<String, Float> result = new HashMap<>();
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject allData = (JSONObject) parser.parse(
+                    new FileReader("C:\\Users\\liana\\nology\\currencyProject\\CurrencyApplication\\savedRates.json"));
+            Object dataForCurrency =  allData.get(base);
+            for (String code : dataForCurrency.keySet){
+                result.put(code, Float.parseFloat(dataForCurrency.get(code)));
+            }
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+
     }
 
 }

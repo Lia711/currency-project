@@ -39,6 +39,7 @@ public class CurrencyController {
         return "created";
     }
 
+    //not available
     @GetMapping("/historical/{base}/{year}/{month}/{day}")
     public ResponseEntity<Map<String, Float>> getHistorical(@PathVariable String base,
                                                 @PathVariable String year,
@@ -47,10 +48,4 @@ public class CurrencyController {
         return ResponseEntity.status(HttpStatus.OK).body(currencyService.getHistorical(base, year, month, day));
     }
 
-    @GetMapping("/convert/{base}/{target}/{amount}")
-    public ResponseEntity<String> convertToAny(@PathVariable("base") String base,
-                                               @PathVariable("target") String target,
-                                               @PathVariable("amount") String amount) {
-        return ResponseEntity.status(HttpStatus.OK).body(currencyService.convertToAny(base, target, amount));
-    }
 }

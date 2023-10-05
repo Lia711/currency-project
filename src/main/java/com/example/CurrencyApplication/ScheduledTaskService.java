@@ -13,20 +13,10 @@ import java.util.Map;
 
 @Component
 public class ScheduledTaskService {
-    File jsonFile = new File("C:\\Users\\liana\\nology\\currencyProject\\CurrencyApplication\\savedRates.json");
     CurrencyService currencyService;
-    @Scheduled(cron = "0 0 10 * * *") //10am every day
-    public void getDailyData() {
-        //if json doesn't exist call creator
-        //if it does, replace it
-
+    @Scheduled(cron = "0 0 10 * * *") // 10am every day
+    public void getDailyData() throws IOException {
+        currencyService.createJSON();
         System.out.println("Daily Rates Retrieved");
     }
-
-//    @Scheduled(fixedDelay = 3000) //10am every day
-//    public void checkFile() {
-//        if (jsonFile.isFile()){
-//            System.out.println("exists");
-//        } else System.out.println("does not exist");
-//    }//always returns true
 }
