@@ -32,7 +32,7 @@ public class CurrencyController {
         return ResponseEntity.status(HttpStatus.OK).body(currencyService.getLatest(base));
     }
 
-    @GetMapping("/json") //manually create file storing current rates
+    @GetMapping("/createjson") //manually create file storing current rates
     public String getjson() throws IOException {
         currencyService.createJSON();
         return "created";
@@ -43,7 +43,7 @@ public class CurrencyController {
         return currencyService.getJsonData(base);
     }
 
-    @GetMapping("/compare/{base}") //compare current rates to ones in stored data
+    @GetMapping("/compare/{base}") //compare current rates to stored ones
     public Map<String, Float> compare(@PathVariable String base) throws IOException {
         return currencyService.compareLatestToSaved(base);
     }

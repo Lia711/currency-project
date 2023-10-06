@@ -64,7 +64,8 @@ public class CurrencyService {
         Map<String, Float> compared = new HashMap<>();
         for (String currency : latest.keySet()) {
             if (saved.keySet().contains(currency)) {
-                compared.put(currency, latest.get(currency) - saved.get(currency));
+                //show percentage increase/decrease; round to two decimal places
+                compared.put(currency, (float) Math.round((((latest.get(currency) - saved.get(currency))/ latest.get(currency)))*100*100)/100);
             }
         }
         return compared;
