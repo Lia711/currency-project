@@ -19,33 +19,32 @@ public class CurrencyController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
     }
 
-    @GetMapping("/currencies")
-    public ResponseEntity<Map<String, String>> getCurrencies() throws ServerErrorException{
+    @GetMapping("/currencies") //list of currency names and codes
+    public ResponseEntity<Map<String, String>> getCurrencies() throws ServerErrorException {
         Map<String, String> result = currencyService.getCurrencies();
-        if (result!=null){
+        if (result != null) {
             return ResponseEntity.status(HttpStatus.OK).body(currencyService.getCurrencies());
-        }
-        else throw new ServerErrorException();
+        } else throw new ServerErrorException();
     }
 
-    @GetMapping("/latest/{base}")
+    @GetMapping("/latest/{base}") //latest rates for specific currency
     public ResponseEntity<Map<String, Float>> getLatest(@PathVariable String base) {
         return ResponseEntity.status(HttpStatus.OK).body(currencyService.getLatest(base));
     }
 
-    @GetMapping("/json")
+    @GetMapping("/json") //manually create file storing current rates
     public String getjson() throws IOException {
         currencyService.createJSON();
         return "created";
     }
 
-    //not available
-    @GetMapping("/historical/{base}/{year}/{month}/{day}")
-    public ResponseEntity<Map<String, Float>> getHistorical(@PathVariable String base,
-                                                @PathVariable String year,
-                                                @PathVariable String month,
-                                                @PathVariable String day) {
-        return ResponseEntity.status(HttpStatus.OK).body(currencyService.getHistorical(base, year, month, day));
+    @GetMapping("/readjson/{base}") //get stored rates (auto-refreshes every day at 10am)
+    public Map<String, Float> readJson(@PathVariable String base) throws IOException {
+        return currencyService.getJsonData(base);
     }
 
+    @GetMapping("/compare/{base}") //compare current rates to ones in stored data
+    public Map<String, Float> compare(@PathVariable String base) throws IOException {
+        return currencyService.compareLatestToSaved(base);
+    }
 }

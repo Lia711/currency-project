@@ -14,6 +14,7 @@ import java.util.Map;
 @Component
 public class ScheduledTaskService {
     CurrencyService currencyService;
+
     @Scheduled(cron = "0 0 10 * * *") // 10am every day
     public void getDailyData() throws IOException {
         currencyService.createJSON();
